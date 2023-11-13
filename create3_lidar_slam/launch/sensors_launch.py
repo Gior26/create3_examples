@@ -2,10 +2,11 @@
 # Copyright 2022 iRobot Corporation. All Rights Reserved.
 
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch_ros.actions import Node, PushRosNamespace
+from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, GroupAction
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 
 def generate_launch_description():
@@ -25,7 +26,7 @@ def generate_launch_description():
     static_transform_node = Node(
         package='tf2_ros', 
         executable='static_transform_publisher',
-        arguments=['-0.012', '0', '0.144', '0', '0', '0', 'base_footprint', 'laser_frame'],
+        arguments=['-0.012', '0', '0.115', '0', '0', '0', 'base_link', 'laser_frame'],
         
         # Remaps topics used by the 'tf2_ros' package from absolute (with slash) to relative (no slash).
         # This is necessary to use namespaces with 'tf2_ros'.
@@ -37,16 +38,13 @@ def generate_launch_description():
     
     # Declares an action that will launch a node when executed by the launch description.
     # This node is responsible for configuring the RPLidar sensor.    
-    rplidar_node = Node(
-        name='rplidar_composition',
-        package='rplidar_ros',
-        executable='rplidar_composition',
-        output='screen',
-        parameters=[
-            get_package_share_directory("create3_lidar_slam") + '/config/rplidar_node.yaml'
-            ],
-        namespace=namespace
-    )
+    lidar_node = GroupAction([
+        PushRosNamespace(namespace),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([get_package_share_directory('ldlidar_stl_ros2'), '/launch/ld19.launch.py']),
+            ),
+        ])
+
     
     # Launches all named actions
     return LaunchDescription([
@@ -54,6 +52,6 @@ def generate_launch_description():
         static_transform_node,
         TimerAction(
             period=2.0,
-            actions=[rplidar_node]
+            actions=[lidar_node]
         )
     ])
