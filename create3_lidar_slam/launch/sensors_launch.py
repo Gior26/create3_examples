@@ -26,7 +26,7 @@ def generate_launch_description():
     static_transform_node = Node(
         package='tf2_ros', 
         executable='static_transform_publisher',
-        arguments=['-0.012', '0', '0.115', '0', '0', '0', 'base_link', 'laser_frame'],
+        arguments=['-0.012', '0', '0.115', '0', '0', '0', 'base_footprint', 'laser_frame'],
         
         # Remaps topics used by the 'tf2_ros' package from absolute (with slash) to relative (no slash).
         # This is necessary to use namespaces with 'tf2_ros'.
